@@ -1,56 +1,61 @@
-import {
-  Link as ChakraLink,
-  Text,
-  Code,
-  List,
-  ListIcon,
-  ListItem,
-} from '@chakra-ui/react'
-import { CheckCircleIcon, LinkIcon } from '@chakra-ui/icons'
+import { Textarea } from "@chakra-ui/react";
+import { Button } from "@chakra-ui/button";
+import { Select } from "@chakra-ui/react";
+import { Container } from "../components/Container";
+import { Main } from "../components/Main";
+import { DarkModeSwitch } from "../components/DarkModeSwitch";
+import { useState } from "react";
+import { useSpeechSynthesis } from "react-speech-kit";
 
-import { Hero } from '../components/Hero'
-import { Container } from '../components/Container'
-import { Main } from '../components/Main'
-import { DarkModeSwitch } from '../components/DarkModeSwitch'
-import { CTA } from '../components/CTA'
-import { Footer } from '../components/Footer'
+const Index = () => {
+  const [selectedVoice, selectedVoiceSet] = useState<SpeechSynthesisVoice>();
+  const [texto, textoSet] = useState("");
+  const { speak, voices, cancel, speaking } = useSpeechSynthesis();
 
-const Index = () => (
-  <Container height="100vh">
-    <Hero />
-    <Main>
-      <Text>
-        Example repository of <Code>Next.js</Code> + <Code>chakra-ui</Code> +{' '}
-        <Code>typescript</Code>.
-      </Text>
+  return (
+    <Container height="50vh">
+      <Main>
+        <Select
+          placeholder="Select option"
+          onChange={(ev) => {
+            selectedVoiceSet(
+              (voices as SpeechSynthesisVoice[]).find(
+                (v) => v.name === ev.target.value
+              )
+            );
+          }}
+        >
+          {voices?.map((v: SpeechSynthesisVoice) => (
+            <option key={v.name} value={v.name}>
+              {v.name}
+            </option>
+          ))}
+        </Select>
 
-      <List spacing={3} my={0}>
-        <ListItem>
-          <ListIcon as={CheckCircleIcon} color="green.500" />
-          <ChakraLink
-            isExternal
-            href="https://chakra-ui.com"
-            flexGrow={1}
-            mr={2}
-          >
-            Chakra UI <LinkIcon />
-          </ChakraLink>
-        </ListItem>
-        <ListItem>
-          <ListIcon as={CheckCircleIcon} color="green.500" />
-          <ChakraLink isExternal href="https://nextjs.org" flexGrow={1} mr={2}>
-            Next.js <LinkIcon />
-          </ChakraLink>
-        </ListItem>
-      </List>
-    </Main>
+        <Textarea onChange={(ev) => textoSet(ev.target.value)} value={texto} />
 
-    <DarkModeSwitch />
-    <Footer>
-      <Text>Next ❤️ Chakra</Text>
-    </Footer>
-    <CTA />
-  </Container>
-)
+        <Button
+          onClick={() => {
+            if (speaking) {
+              cancel();
+            } else if (selectedVoice) {
+              speak({
+                text: texto,
+                voice: selectedVoice,
+                rate: 5,
+                pitch: 0.8,
+                volume: 0.4,
+              });
+            }
+          }}
+        >
+          {speaking ? "parar" : "falar"}
+        </Button>
+      </Main>
 
-export default Index
+      <DarkModeSwitch />
+    </Container>
+  );
+};
+
+export default Index;
